@@ -29,6 +29,9 @@ class BSTree
         vector<T> preorderTraversal() const;
         vector<T> inorderTraversal() const;
         vector<T> postorderTraversal() const;
+        static BSTree<T>* reconstruct(const vector<T>& inorder,const vector<T>& preorder);
+        static Node<T>* reconstructNodes(const vector<T>& inorder,const vector<T>& preorder);
+        int getHeight();
 
     private:
         void deleteAll(Node<T>*);
@@ -37,22 +40,30 @@ class BSTree
         void preorderTraverse(Node<T>*, vector<T>&) const;
         void inorderTraverse(Node<T>*, vector<T>&) const;
         void postorderTraverse(Node<T>*, vector<T>&) const;
-        void copy(const BSTree<T>&, Node<T>*&);
+        int getHeight(Node<T>*);
+        Node<T>* copy(const Node<T>*);
 };
 
 template <typename T>
 BSTree<T>::BSTree():root(NULL) {}
 
 template <typename T>
-void BSTree<T>::copy(const BSTree<T>& other, Node<T>*& subTreeRoot)
+Node<T>* BSTree<T>::copy(const Node<T>* node)
 {
-    //TODO
+    if(node == nullptr)
+    {
+        return nullptr;
+    }
+    Node<T>* result = new Node<T>(node->data);
+    result->left = copy(node->left);
+    result->right = copy(node->right);
+    return result;
 }
 
 template <typename T>
 BSTree<T>::BSTree(const BSTree<T>& other)
 {
-    copy(other,root);
+
 }
 
 template <typename T>
@@ -60,7 +71,7 @@ BSTree<T>& BSTree<T>::operator=(const BSTree<T>& other) {
     if(this != &other)
     {
         deleteAll(root);
-        copy(other,root);
+        copy(root);
     }
     return *this;
 }
@@ -202,6 +213,79 @@ void printVector(const vector<int>& vec) {
     }
 }
 
+template <typename T>
+vector<T> getSubVector2(const vector<T> vec,int from,int to) //using vector constructor with params
+{
+    return vector<T>(vec,vec.begin()+from,vec.begin()+to);
+}
+
+
+template <typename T>
+vector<T> getSubVector(const vector<T> vec,int from,int to)
+{
+    vector<T> result;
+    for(int i=from;i<to;i++)
+    {
+        result.push_back(vec[i]);
+    }
+    return result;
+}
+
+template <typename T>
+int findIdx(const T& el,const vector<T>& vec)
+{
+    for(int i=0;i<vec.size();i++)
+    {
+        if(el==vec[i])
+            return i;
+    }
+    return -1;
+}
+
+
+template <typename T>
+BSTree<T>* BSTree<T>::reconstruct(const vector<T>& inorder,const vector<T>& preorder) // works for unordered BTrees aswell
+{
+    Node<T>* rootResult = reconstructNodes(inorder,preorder);
+    return new BSTree<T>(rootResult);
+}
+
+template <typename T>
+Node<T>* BSTree<T>::reconstructNodes(const vector<T>& inorder,const vector<T>& preorder) // is static aswell
+{
+    if(preorder.size() == 0)// no need to check if inorder.size is 0 because they have the same length
+    {
+        return nullptr;
+    }
+    T rootData = preorder[0];
+    int rootIndex = findIdx(rootData,inorder);
+    Node<T>* result = new Node<T>(rootData);
+    result->left = reconstructNodes(getSubVector(inorder,0,rootIndex), getSubVector(preorder,1,rootIndex));
+    result->rigt = reconstructNodes(getSubVector(inorder,rootIndex+1,inorder.size()),
+                                    getSubVector(preorder,rootIndex+1,preorder.size()));
+
+    return result;
+}
+
+template <typename T>
+int BSTree<T>::getHeight()
+{
+    return getHeight(root);
+}
+
+template <typename T>
+int BSTree<T>::getHeight(Node<T>* node)
+{
+    if(node == nullptr)
+    {
+        return 0;
+    }
+    return max(getHeight(node->left),getHeight(node->right))+1;
+}
+
+
+
+
 void testTraversals()
 {
     BSTree<int> bst;
@@ -241,14 +325,41 @@ void testRemovingRoot()
     cout << endl;
     bst.remove(10);
     cout << endl << "After removing the root: " << endl;
-    bst.print();
+//    bst.print();
+//    cout<<"height"<<bst.getHeight();
 
+}
+
+void testCopyConstructor()
+{
+    BSTree<int> bst;
+    bst.add(10);
+    bst.add(-20);
+    bst.add(15);
+    bst.add(5);
+    bst.add(10);
+    bst.add(-5);
+    bst.add(17);
+    BSTree<int> toCopy(bst);
+    toCopy.print();
 }
 
 int main()
 {
-    testTraversals();
-    testRemovingRoot();
+
+    testCopyConstructor();
+
+    //testTraversals();
+    //testRemovingRoot();
+
+//    vector<int> bigv;
+//    bigv.push_back(1);
+//    bigv.push_back(2);
+//    bigv.push_back(3);
+//    bigv.push_back(4);
+//    bigv.push_back(5);
+//    vector<int> partv(bigv,bigv.begin()+1,bigv.begin()+3);
+
 
     return 0;
 }
