@@ -63,7 +63,7 @@ Node<T>* BSTree<T>::copy(const Node<T>* node)
 template <typename T>
 BSTree<T>::BSTree(const BSTree<T>& other)
 {
-
+    root = copy(root);
 }
 
 template <typename T>
@@ -71,7 +71,7 @@ BSTree<T>& BSTree<T>::operator=(const BSTree<T>& other) {
     if(this != &other)
     {
         deleteAll(root);
-        copy(root);
+        root = copy(root);
     }
     return *this;
 }
@@ -340,14 +340,15 @@ void testCopyConstructor()
     bst.add(10);
     bst.add(-5);
     bst.add(17);
+    //bst.print();
     BSTree<int> toCopy(bst);
-    toCopy.print();
+    //cout<<toCopy.getHeight();
 }
 
 int main()
 {
 
-    testCopyConstructor();
+    //testCopyConstructor();
 
     //testTraversals();
     //testRemovingRoot();
